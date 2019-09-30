@@ -21,8 +21,8 @@ let createTables = () => {
       `,
       services_types: `
         CREATE TABLE IF NOT EXISTS services_types (
-          id INT NOT NULL,
-          type VARCHAR(64) NOT NULL,
+          id INT NOT NULL PRIMARY KEY,
+          type VARCHAR(64) NOT NULL UNIQUE,
           meta JSON    
         )
       `,
