@@ -15,7 +15,7 @@ routeAuth = require('./auth')(express);
 
 
 app.use('/', route);
-app.use('/auth', routeAuth);
+app.use('/v1', routeAuth);
 
 module.exports = {
     app,

@@ -3,60 +3,53 @@ const server = require('../Configs/server');
 const jwt = require('jsonwebtoken');
 const Configs = require('../Configs/configs');
 const nodemailer = require('nodemailer');
+const tools = require('../Services/ToolsService');
 
-const register = async function (user) {
-    return new Promise(async (response) => {
+const register = function (user) {
+    return new Promise(async (response, error) => {
         let verifyUser = await banco.query(`
             SELECT id FROM temp_users 
             WHERE email = '${user.email}'
         `);
         if (!verifyUser.length) {
+            user.token = tools.gerarHash();
             let createUser = await banco.query(`
                 INSERT INTO temp_users 
                 (
-                    name, email, password, type, accepted
+                    name, email, password, type, accepted, token
                 ) VALUES (
                     '${user.name}',
                     '${user.email}',
                     '${user.password}',
                     '${user.type}',
-                    '0'
+                    '0',
+                    '${user.token}'
                 )
             `);
             if (createUser) {
-                
-                var transport = nodemailer.createTransport({
-                    host: "smtp.mailtrap.io",
+                let transport = nodemailer.createTransport({
+                    host: 'smtp.mailtrap.io',
                     port: 2525,
                     auth: {
-                      user: "257275fd7a9637",
-                      pass: "040c6c65b31598"
+                        user: '257275fd7a9637',
+                        pass: '040c6c65b31598'
                     }
                 });
-
-                const message = {
-                    from: 'elonmusk@tesla.com', // Sender address
-                    to: 'to@email.com',         // List of recipients
-                    subject: 'Design Your Model S | Tesla', // Subject line
-                    text: 'Have the most fun you can in a car. Get your Tesla today!' // Plain text body
+                let message = {
+                    from: 'cadastro@trampocerto.com', 
+                    to: `${user.email}`,
+                    subject: 'Conta TrampoCerto criada com sucesso!',
+                    html: `
+                        <b>Código:</b> <i>${user.token}</i>
+                    `,
                 };
-                
-                transport.sendMail(message, function(err, info) {
-                    if (err) {
-                      console.log(err)
-                    } else {
-                      console.log(info);
-                    }
+                transport.sendMail(message, function (err, info) {
+                    if (err) response({ message: 'Conta criada com sucesso!', status: 200 });
+                    else error({ message: 'Erro ao enviar email de confirmação!', status: 205 });
                 });
-
-                response(createUser);
             }
-        } else {
-            response('Deu ruim aqui parsero');
-        }
-    }).catch((error) => {
-        error('Error');
-    });
+        } else response({message: 'Deu ruim aqui parsero', status: 400});
+    }).catch((error) => { error({message: 'Error', status: 400}); });
 }
 const login = function (user) {
     return new Promise((response, error) => {
@@ -73,18 +66,15 @@ const login = function (user) {
                     email: result[0].email,
                     password: result[0].password
                 }
-                var token = jwt.sign({ data: JSON.stringify(userData) }, Configs.secret, {
-                    expiresIn: 60 * 60 * 24
-                });
+                let token = jwt.sign({ data: JSON.stringify(userData) }, Configs.secret, { expiresIn: 60 * 60 * 24 });
                 response({
                     token: token,
                     user: result[0],
+                    status: 200,
                 });
-            } else {
-                error('Login ou senha inválidos.');
-            }
+            } else error({message: 'Login ou senha inválidos.', status: 401});
         });
-    }); 
+    });
 }
 
 module.exports = {

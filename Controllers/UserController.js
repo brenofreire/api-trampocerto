@@ -2,21 +2,21 @@ const User = require('../Models/UserModel');
 const jwt = require('jsonwebtoken');
 const Configs = require('../Configs/configs');
 
-let rotas = (route, routeAuth) => {
-    route.post('/register', (requisicao, response) => {
-        User.register(requisicao.body).then((result) => {
-            response.send(result);
+let userRoutes = (route, routeAuth) => {
+    route.post('/register', (req, res) => {
+        User.register(req.body).then((result) => {
+            res.status(result.status).send(result);
         }).catch((err) => {
-            response.send(err);
+            res.status(err.status).send(err);
         });
     });
-    route.post('/login', (requisicao, response) => {
-        User.login(requisicao.body).then((result) => {
-            response.send(result);
+    route.post('/login', (req, res) => {
+        User.login(req.body).then((result) => {
+            res.status(result.status).send(result);
         }).catch((err) => {
-            response.send(err);
+            res.status(err.status).send(err);
         });
     });
 }
 
-module.exports = rotas;
+module.exports = userRoutes;

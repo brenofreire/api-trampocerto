@@ -4,8 +4,9 @@ const configs = require('./configs');
 module.exports = (express) => {
     //Endpoints autenticados
     routeAuth = express.Router();
+    return routeAuth;
     routeAuth.use((request, response, next) => {
-        var token = request.headers['authorization'];
+        var token = request.headers['Authorization'];
         if (!token) {
             response.statusCode = 401;
             response.end("jwt_invalid_token");
