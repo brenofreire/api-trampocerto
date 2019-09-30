@@ -21,36 +21,41 @@ let createTables = () => {
       `,
       services_types: `
         CREATE TABLE IF NOT EXISTS services_types (
-          id INT NOT NULL PRIMARY KEY,
+          id INT UNSIGNED NOT NULL PRIMARY KEY,
           type VARCHAR(64) NOT NULL UNIQUE,
           meta JSON    
         )
       `,
       services: `
-        title VARCHAR(64) NOT NULL,
-        type VARCHAR(64) NOT NULL,
-        id_user INT(11) NOT NULL,
-        id_partner INT(11),
+        title VARCHAR(64) NOT NULL, 
+        type INT UNSIGNED NOT NULL,
+        id_user INT UNSIGNED NOT NULL,
+        id_partner INT UNSIGNED,
         description TEXT,
         prize VARCHAR(16),
         situation VARCHAR(32),
         status TINYINT NOT NULL
-      `
+      `,       
     }
-    // delete schemas['services'];
     let raw = ['services_types']; 
     for (const table in schemas) {
       if(!raw.includes(table)) banco.query(`
         CREATE TABLE IF NOT EXISTS ${table} (
-          id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+          id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
           ${schemas[table]},          
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP   
         );
       `); 
       else banco.query(schemas[table]);
     }
+    banco.query(`
+      ALTER TABLE services 
+        ADD FOREIGN KEY (type) REFERENCES services_types(id),
+        ADD FOREIGN KEY (id_user) REFERENCES users(id),
+        ADD FOREIGN KEY (id_partner) REFERENCES users(id);
+    `);
   });
 }
 
-module.exports = { createTables };
+module.exports = { createTables }; 
