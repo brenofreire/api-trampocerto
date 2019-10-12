@@ -42,40 +42,51 @@ const register = function (user) {
           html: `<b>Código:</b> <i>${user.token}</i>`,
         };
         transport.sendMail(message, function (err, info) {
-          if (err) response({ message: 'Conta criada com sucesso!', status: 200 });
+          if (!err) response({ message: 'Conta criada com sucesso!', status: 200 });
           else error({ message: 'Erro ao enviar email de confirmação!', status: 205 });
         });
       }
-    } else response({ message: 'Deu ruim aqui parsero', status: 400 });
+    } else response({ message: 'Email já cadastrado no sistema', status: 400 });
   }).catch((error) => { error({ message: 'Error', status: 400 }); });
 }
 const login = function (user) {
-  return new Promise((response, error) => {
-    banco.query(`
+  return new Promise(async (response, error) => {
+    let user_temp = await banco.query(`
+      SELECT id FROM temp_users 
+      WHERE email = '${user.email}'
+      AND accepted = 0
+    `);
+    if (user_temp[0] && user_temp[0].length) response({
+      message: 'Usuário ainda não confirmado',
+      code: 'user_not_accepted',
+      status: 403,
+    }); else {
+      banco.query(`
       SELECT name, email, role, id, type, password FROM users WHERE
       email = '${user.email}' AND
       password = '${user.password}'
     `).then(result => {
-      if (result.length == 1) {
-        let userData = {
-          id: result[0].id,
-          name: result[0].name,
-          email: result[0].email,
-          password: result[0].password,
-          role: result[0].role,
-          type: result[0].type,
-        }
-        let token = jwt.sign({ data: JSON.stringify(userData) }, Configs.secret, {
-          expiresIn: 60 * 60 * 24
-        });
-        delete result[0].password;
-        response({
-          token: token,
-          user: result[0],
-          status: 200,
-        });
-      } else error({ message: 'Login ou senha inválidos.', status: 401 });
-    });
+        if (result.length == 1) {
+          let userData = {
+            id: result[0].id,
+            name: result[0].name,
+            email: result[0].email,
+            password: result[0].password,
+            role: result[0].role,
+            type: result[0].type,
+          }
+          let token = jwt.sign({ data: JSON.stringify(userData) }, Configs.secret, {
+            expiresIn: 60 * 60 * 24
+          });
+          delete result[0].password;
+          response({
+            token: token,
+            user: result[0],
+            status: 200,
+          });
+        } else error({ message: 'Login ou senha inválidos.', status: 401 });
+      });
+    }
   });
 }
 

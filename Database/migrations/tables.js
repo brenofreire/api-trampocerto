@@ -11,7 +11,7 @@ let createTables = () => {
         role ENUM('1','2','3','4') DEFAULT 1,
         status TINYINT NOT NULL
       `,
-      temp_uers: `
+      temp_users: `
         name VARCHAR(96) NOT NULL,
         email VARCHAR(96) NOT NULL,
         password VARCHAR(96) NOT NULL,
