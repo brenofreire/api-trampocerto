@@ -55,9 +55,10 @@ const login = function (user) {
       SELECT id FROM temp_users 
       WHERE email = '${user.email}'
       AND accepted = 0
+      LIMIT 1
     `);
-    if (user_temp[0] && user_temp[0].length) response({
-      message: 'Usuário ainda não confirmado',
+    if (user_temp[0]) response({
+      message: `Confirme sua conta antes de fazer o login. Nós o enviamos um email com as instruções para: ${user.email}`,
       code: 'user_not_accepted',
       status: 403,
     }); else {

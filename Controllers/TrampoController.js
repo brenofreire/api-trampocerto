@@ -19,21 +19,30 @@ let trampoRoutes = (route, routeAuth) => {
       res.status(err.status).send(err);
     });
   });
-  routeAuth.get('/trampo/search_services', (req, res) => {
-    verifyType({ req: req, res: res, type: 'partner'});
-    Trampo.serachServices(req.query.searchValue, req.query.serviceType, req.query.offset).then(result => {
-      res.send(result);
+  routeAuth.get('/trampo/search', (req, res) => {
+    if (verifyType({ req: req, res: res, type: 'partner' }))
+      Trampo.serachServices(req.query.searchValue, req.query.serviceType, req.query.offset).then(result => {
+        res.status(200).send(result);
+      }).catch(() => {
+        res.status(400).send('Erro ao buscar lista de serviços.');
+      });
+  });
+  route.get('/services_types', (req, res) => {
+    Trampo.getServicesTypes().then(result => {
+      res.status(200).send(result);
     }).catch(() => {
-      res.send('Error');
+      res.status(400).send('Erro ao retornar serviços.');
     });
   });
 }
 function verifyType({ req, res, type }) {
   let userSession = JSON.parse(jwt.verify(req.headers.authorization, Configs.secret).data);
-  if (type && type != userSession['type']) res.status(400).send({
-    message: 'Usuário não permitido!',
-  }); 
-  return userSession;
+  if (type && type != userSession['type']) {
+    res.status(400).send({
+      message: 'Usuário não permitido!',
+    });
+    return false;
+  } else return userSession;
 }
 
 module.exports = trampoRoutes;

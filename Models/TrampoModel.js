@@ -59,7 +59,7 @@ const changeServiceSituation = (user, service_id, situation) => {
       else error({ message: 'Houve um erro inesperado ao aceitar serviço!', status: 400 });
     }
     // if he is not able to accept (he already accepted or someone else accepted)
-    else error({ message: `Este serviço já foi ${action[situation]}!`, status: 401});
+    else error({ message: `Este serviço já foi ${action[situation]}!`, status: 401 });
   });
 }
 //=============================================================//
@@ -69,7 +69,9 @@ function serachServices(serachValue, serviceType = null, offset) {
   return new Promise(async (response, error) => {
     serviceType = serviceType ? `AND services.type = '${serviceType}'` : '';
     let services = await banco.query(`
-      SELECT * FROM services 
+      SELECT services.*, users.name AS client_name
+      FROM services       
+      INNER JOIN users ON services.id_user = users.id
       WHERE (
         services.title LIKE '%${serachValue ? serachValue : ''}%'
         OR services.type LIKE '%${serachValue ? serachValue : ''}%'
@@ -78,8 +80,20 @@ function serachServices(serachValue, serviceType = null, offset) {
       AND services.situation = 'created'
       ${serviceType}
     `);
-    if (services) response({ services: services });
-    else response()
+    if (services) response({ services: services, status: 200 });
+    else response({ services: null, status: 305 });
+  });
+}
+//=============================================//
+//============= GET SERVICE TYPES =============//
+//=============================================//
+function getServicesTypes() {
+  return new Promise(async (response, error) => {
+    let service_types = await banco.query(`
+      SELECT * FROM services_types
+    `);
+    if (service_types.length) response(service_types);
+    else response({ message: 'Sem tipos de serviços cadastrados', status: 200 });
   });
 }
 //=========================================================//
@@ -103,4 +117,5 @@ module.exports = {
   create,
   changeServiceSituation,
   serachServices,
+  getServicesTypes,
 }

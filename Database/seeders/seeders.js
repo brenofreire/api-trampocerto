@@ -64,7 +64,7 @@ let createSeeds = () => {
         ON DUPLICATE KEY UPDATE
         id = VALUES(id),
         type = VALUES(type)
-      `
+      `,
     }
     for (const seed in seeds) banco.query(seeds[seed]);
   });

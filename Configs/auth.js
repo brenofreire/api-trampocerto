@@ -8,7 +8,10 @@ module.exports = (express) => {
         var token = request.headers['authorization'];
         if (!token) {
             response.statusCode = 401;
-            response.end("jwt_auth_invalid_token");
+            response.send({
+                err: "jwt_auth_invalid_token",
+                headers: request.headers,
+            });
         }
         validaToken(token).then(function (usuario) {
             if (usuario) {
