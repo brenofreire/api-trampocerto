@@ -3,9 +3,6 @@ const app = express();
 const bodyParser = require('body-parser');
 const port = process.env.PORT || 4444;
 const cors = require('cors');
-
-
-
 const jwt = require('jsonwebtoken');
 const configs = require('./configs');
 

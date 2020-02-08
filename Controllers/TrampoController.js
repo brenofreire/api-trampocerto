@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const Configs = require('../Configs/configs');
 
 let trampoRoutes = (route, routeAuth) => {
+  // Cria um serviço
   routeAuth.post('/trampo/create', (req, res) => {
     let user = verifyType({ req: req, res: res, type: 'user' });
     Trampo.create(req.body).then(result => {
@@ -11,23 +12,39 @@ let trampoRoutes = (route, routeAuth) => {
       res.status(400).send(err);
     });
   });
-  routeAuth.post('/trampo/:situation/:service_id', (req, res) => {
+  // Muda o status de um serviço
+  routeAuth.get('/trampo/:situation/:service_id', (req, res) => {
     let user = verifyType({ req: req, res: res });
-    Trampo.changeServiceSituation(req.body.id_user, req.params.service_id, req.params.situation).then(result => {
+    Trampo.changeServiceSituation({
+      id_user: user.type != 'partner' ? user.id : null,
+      id_partner: user.type == 'partner' ? user.id : null,
+      service_id: Number(req.params.service_id),
+      situation: req.params.situation
+    }).then(result => {
       res.status(result.status).send(result);
     }).catch(err => {
       res.status(err.status).send(err);
     });
   });
+  // Pesquisa serviços disponíveis
   routeAuth.get('/trampo/search', (req, res) => {
-    if (verifyType({ req: req, res: res, type: 'partner' }))
-      Trampo.serachServices(req.query.searchValue, req.query.serviceType, req.query.offset).then(result => {
-        res.status(200).send(result);
-      }).catch(() => {
-        res.status(400).send('Erro ao buscar lista de serviços.');
-      });
+    const user = verifyType({ req: req, res: res, type: 'partner' });
+    if (user) Trampo.serachServices(req.query.searchValue, req.query.serviceType, req.query.offset, user.id).then(result => {
+      res.status(200).send(result);
+    }).catch(() => {
+      res.status(400).send('Erro ao buscar lista de serviços.');
+    });
   });
-  route.get('/services_types', (req, res) => {
+  // Pega os tipos de serviços disponiveis
+  route.get('/trampo/services_types', (req, res) => {
+    Trampo.getServicesTypes().then(result => {
+      res.status(200).send(result);
+    }).catch(() => {
+      res.status(400).send('Erro ao retornar serviços.');
+    });
+  });
+  // 
+  route.get('/trampo/services_types', (req, res) => {
     Trampo.getServicesTypes().then(result => {
       res.status(200).send(result);
     }).catch(() => {

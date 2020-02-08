@@ -30,7 +30,7 @@ const create = (service) => {
 //=================================================//
 //============= CHANGE SERVICE STATUS =============//
 //=================================================//
-const changeServiceSituation = (user, service_id, situation) => {
+const changeServiceSituation = ({id_user = null , id_partner = null, service_id, situation}) => {
   return new Promise(async (response, error) => {
     let action = {
       accepted: 'aceito',
@@ -40,7 +40,21 @@ const changeServiceSituation = (user, service_id, situation) => {
       canceled: 'cancelado',
       deleted: 'excluído',
     }
-    // verify if the partnet is able to accept the service    
+    await banco.query(`
+      INSERT INTO services_chats (
+        id_partner, id_user, id_service, situation, status
+      ) VALUES (
+        ${id_partner},
+        ${id_user},
+        ${service_id},
+        '${situation}',
+        1
+      )
+    `);
+    response({ message: `Serviço ${action[situation]} com sucesso!`, status: 200 });
+    return;
+
+    // verify if the partner is able to accept the service    
     if (situation == 'accepted') var verififyAcceptable = await banco.query(`
       SELECT id_partner, COUNT(id) AS created FROM services
       WHERE services.id = ${service_id}
@@ -65,11 +79,18 @@ const changeServiceSituation = (user, service_id, situation) => {
 //=============================================================//
 //======================= LIST SERVICES =======================//
 //=============================================================//
-function serachServices(serachValue, serviceType = null, offset) {
+function serachServices(serachValue, serviceType = null, offset, id_partner) {
   return new Promise(async (response, error) => {
     serviceType = serviceType ? `AND services.type = '${serviceType}'` : '';
     let services = await banco.query(`
-      SELECT services.*, users.name AS client_name
+      SELECT 
+        services.*, 
+        users.name AS client_name,
+        (
+          SELECT COUNT(id) FROM services_chats chat
+          WHERE chat.id_partner = ${id_partner}
+          AND chat.id_service = services.id
+        ) AS service_isNew 
       FROM services       
       INNER JOIN users ON services.id_user = users.id
       WHERE (
@@ -79,6 +100,7 @@ function serachServices(serachValue, serviceType = null, offset) {
       AND services.status = 1
       AND services.situation = 'created'
       ${serviceType}
+      HAVING service_isNew = 0
     `);
     if (services) response({ services: services, status: 200 });
     else response({ services: null, status: 305 });

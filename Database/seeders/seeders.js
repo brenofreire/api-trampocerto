@@ -19,7 +19,7 @@ let createSeeds = () => {
         ), (
           2,
           'Cliente',
-          'cliente',
+          'cliente@tc.com',
           '123123123',
           'user',
           '4',
@@ -29,7 +29,7 @@ let createSeeds = () => {
         ), (
           3,
           'Partner',
-          'partner',
+          'partner@tc.com',
           '123123123',
           'partner',
           '4',

@@ -19,13 +19,6 @@ let createTables = () => {
         accepted TINYINT DEFAULT 0,
         token VARCHAR(6)
       `,
-      services_types: `
-        CREATE TABLE IF NOT EXISTS services_types (
-          id INT UNSIGNED NOT NULL PRIMARY KEY,
-          type VARCHAR(64) NOT NULL UNIQUE,
-          meta JSON    
-        )
-      `,
       services: `
         title VARCHAR(64) NOT NULL, 
         type VARCHAR(64) NOT NULL,
@@ -37,6 +30,20 @@ let createTables = () => {
         slug VARCHAR(128) NOT NULL,
         status TINYINT NOT NULL DEFAULT 1
       `,       
+      services_types: `
+        CREATE TABLE IF NOT EXISTS services_types (
+          id INT UNSIGNED NOT NULL PRIMARY KEY,
+          type VARCHAR(64) NOT NULL UNIQUE,
+          meta JSON    
+        )
+      `,
+      services_chats: `
+        id_user INT UNSIGNED,
+        id_partner INT UNSIGNED,
+        id_service INT UNSIGNED NOT NULL,
+        situation VARCHAR(32),
+        status TINYINT NOT NULL
+      `,
     }
     let raw = ['services_types']; 
     for (const table in schemas) {
@@ -54,7 +61,13 @@ let createTables = () => {
       ALTER TABLE services 
         ADD FOREIGN KEY (type) REFERENCES services_types(type),
         ADD FOREIGN KEY (id_user) REFERENCES users(id),
-        ADD FOREIGN KEY (id_partner) REFERENCES users(id);
+        ADD FOREIGN KEY (id_partner) REFERENCES users(id);      
+    `);
+    banco.query(`
+      ALTER TABLE services_chats 
+        ADD FOREIGN KEY (id_user) REFERENCES users(id),
+        ADD FOREIGN KEY (id_partner) REFERENCES users(id),
+        ADD FOREIGN KEY (id_service) REFERENCES services(id);
     `);
   });
 }
